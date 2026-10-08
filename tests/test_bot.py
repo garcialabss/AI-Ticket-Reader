@@ -6,11 +6,26 @@ import unittest
 from unittest.mock import Mock, patch
 
 from reader import AccessError, read_json
-from slack_bot import allowed, run_job
+from slack_bot import allowed, run_job, create_socket_app
 from triage_ai import validate, analyze
 
 
 class BotTests(unittest.TestCase):
+    def test_socket_only_rejects_http_ingress(self):
+        app = Mock()
+        middleware = []
+        app.middleware.side_effect = lambda callback: middleware.append(callback) or callback
+        with patch('slack_bolt.App', return_value=app) as constructor:
+            create_socket_app('fictional-token')
+        self.assertFalse(constructor.call_args.kwargs['request_verification_enabled'])
+        next_handler = Mock()
+        response = Mock()
+        middleware[0](Mock(mode='http'), response, next_handler)
+        self.assertEqual(response.status, 403)
+        next_handler.assert_not_called()
+        middleware[0](Mock(mode='socket_mode'), response, next_handler)
+        next_handler.assert_called_once()
+
     def test_structured_model_response_and_read_only_input(self):
         recommendation = {'id': 1, 'summary': 'Fictício', 'group': 'DevOPS', 'subqueue': 'SIGA',
                           'justification': 'Relato fictício', 'confidence': 'Baixa; exemplo',

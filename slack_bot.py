@@ -73,11 +73,28 @@ def run_job(slack, channel, client, model_key):
     return {'analyzed': pending['analyzed'], 'scope': pending['state']['scope']}
 
 
-def main():
+def create_socket_app(token):
     from slack_bolt import App
-    from slack_bolt.adapter.socket_mode import SocketModeHandler
+    # Socket Mode authenticates the WebSocket with the app token and TLS.
+    # HTTP request signatures do not apply (the SDK skips them for socket_mode).
+    app = App(token=token, request_verification_enabled=False)
 
-    logging.basicConfig(level=logging.ERROR)
+    @app.middleware
+    def socket_only(req, resp, next):
+        if req.mode != 'socket_mode':
+            resp.status = 403
+            resp.body = 'HTTP ingress is not supported.'
+            return resp
+        return next()
+
+    return app
+
+
+def main():
+    from slack_bolt.adapter.socket_mode.websocket_client import SocketModeHandler
+
+    # SDK transport exceptions can contain signed connection URLs; keep logs sanitized.
+    logging.disable(logging.CRITICAL)
     required = ['SLACK_BOT_TOKEN', 'SLACK_APP_TOKEN', 'SLACK_CHANNEL_ID',
                 'SLACK_ALLOWED_USER_IDS', 'FRESHSERVICE_API_KEY', 'TRIAGE_MODEL_API_KEY']
     missing = [name for name in required if not os.getenv(name)]
@@ -90,7 +107,7 @@ def main():
     slack = Slack(os.environ['SLACK_BOT_TOKEN'])
     identity = slack.call('auth.test', {})
     team = identity['team_id']
-    app = App(token=os.environ['SLACK_BOT_TOKEN'])
+    app = create_socket_app(os.environ['SLACK_BOT_TOKEN'])
     lock = threading.Lock()
 
     def worker(command, job_id):
@@ -160,8 +177,26 @@ def main():
             lock.release()
             ack('Não foi possível registar o pedido; não executado.')
 
-    print('A iniciar o recetor /triagem por Socket Mode. Não há agenda automática.', flush=True)
-    SocketModeHandler(app, os.environ['SLACK_APP_TOKEN']).start()
+    handler = SocketModeHandler(app, os.environ['SLACK_APP_TOKEN'])
+    ready = threading.Event()
+
+    def hello(ws, message):
+        try:
+            if json.loads(message).get('type') == 'hello':
+                ready.set()
+        except (ValueError, AttributeError):
+            pass
+
+    handler.client.on_message_listeners.append(hello)
+    handler.connect()
+    if not ready.wait(timeout=30):
+        handler.close()
+        raise AccessError('Socket Mode sem confirmação de ligação; verifique rede e permissões.')
+    print('Socket Mode ligado: evento hello recebido. Pronto para /triagem ajuda.', flush=True)
+    try:
+        threading.Event().wait()
+    finally:
+        handler.close()
 
 
 if __name__ == '__main__':
