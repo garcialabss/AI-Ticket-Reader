@@ -2,7 +2,9 @@
 
 Leitor de tickets Freshservice para apoiar a triagem pelo Codex Cloud. O programa recolhe dados; o Codex analisa-os e apresenta recomendações na conversa. Não é um serviço autónomo de IA e não executa tarefas por agenda.
 
-Também existe um modo de comandos Slack com análise pela API OpenAI: [SLACK_COMMANDS.md](SLACK_COMMANDS.md). Nesse modo, um utilizador autorizado executa `/triagem` e recebe as recomendações no canal. Requer credenciais adicionais e um processo ativo; não é uma funcionalidade nativa da subscrição Codex.
+O workflow recomendado usa a integração oficial **@ChatGPT → Codex Cloud**: [NATIVE_SLACK.md](NATIVE_SLACK.md). Permite iniciar a tarefa pelo Slack e usar o agente Codex para analisar os tickets, sem chave API de IA adicional ou MCP. Depende da disponibilidade e dos limites do workspace, da ativação administrativa e de um ambiente publicado e partilhado.
+
+O modo antigo de comandos `/triagem` com API OpenAI separada foi desativado por defeito. A documentação alternativa permanece em [SLACK_COMMANDS.md](SLACK_COMMANDS.md), mas não é necessária para o workflow oficial.
 
 ## Preparação
 
@@ -53,10 +55,16 @@ python -m unittest discover -s tests -v
 
 Os testes usam dados fictícios. A validação com o Freshservice real requer a credencial e as permissões referidas acima.
 
+Para validar apenas o leitor usado na integração oficial, sem dependências opcionais:
+
+```sh
+python -m unittest discover -s tests -p test_reader.py -v
+```
+
 ## O que fica no GitHub
 
 Código, testes, documentação e instruções de triagem. `data/`, `reports/`, `state/`, `.env` e logs são ignorados. Nunca force a inclusão desses diretórios nem publique conteúdo de tickets, anexos ou chaves. O programa de recolha não cria relatórios automaticamente: as recomendações são produzidas pelo Codex na conversa.
 
 ## Slack
 
-Consulte [SLACK.md](SLACK.md) para configurar o bot e publicar recomendações revistas. `slack_notify.py` pré-visualiza por defeito; a publicação exige `--send` e autorização do utilizador para o relatório e canal. O leitor Freshservice continua sem escrita.
+Use [NATIVE_SLACK.md](NATIVE_SLACK.md) para a integração oficial. O resultado volta à thread pela plataforma; não é necessário enviar a mesma resposta por slack_notify.py. [SLACK.md](SLACK.md) descreve publicação manual pelo bot próprio, apenas se solicitada. O leitor Freshservice continua sem escrita.

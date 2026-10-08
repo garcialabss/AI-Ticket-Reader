@@ -1,5 +1,6 @@
 """Authorized /triagem commands over Slack Socket Mode."""
 import json
+import argparse
 import hashlib
 import logging
 import os
@@ -90,7 +91,12 @@ def create_socket_app(token):
     return app
 
 
-def main():
+def main(argv=None):
+    parser = argparse.ArgumentParser(description='Modo opcional com API de IA faturada separadamente.')
+    parser.add_argument('--enable-api-mode', action='store_true')
+    args = parser.parse_args(argv)
+    if not args.enable_api_mode:
+        raise AccessError('O bot /triagem com API adicional está desativado. Use @ChatGPT com delegação Codex Cloud; consulte NATIVE_SLACK.md. Reativação exige autorização e --enable-api-mode.')
     from slack_bolt.adapter.socket_mode.websocket_client import SocketModeHandler
 
     # SDK transport exceptions can contain signed connection URLs; keep logs sanitized.

@@ -1,5 +1,7 @@
 # Executar a triagem pelo Slack
 
+**Alternativa com API adicional, desativada por defeito.** O workflow recomendado está em [NATIVE_SLACK.md](NATIVE_SLACK.md) e usa a integração oficial @ChatGPT → Codex Cloud. Este modo exige escolha explícita e saldo da API de IA, além de iniciar `slack_bot.py --enable-api-mode`. Não é necessário no workflow oficial.
+
 ## Funcionamento
 
 Um utilizador autorizado escreve `/triagem` no canal configurado. O processo recebe o comando por Socket Mode, confirma a identidade Slack, consulta apenas o workspace Tech-Support, lê os tickets por resolver novos ou alterados e exemplos históricos, e pede recomendações à API OpenAI. Publica uma mensagem por ticket no mesmo canal. Não altera tickets nem escreve notas ou respostas no Freshservice.
@@ -39,7 +41,7 @@ Na raiz do checkout:
 python -m venv /workspace/.ticket-reader-venv
 /workspace/.ticket-reader-venv/bin/python -m pip install -r requirements.txt
 /workspace/.ticket-reader-venv/bin/python -m unittest discover -s tests -v
-/workspace/.ticket-reader-venv/bin/python slack_bot.py
+/workspace/.ticket-reader-venv/bin/python slack_bot.py --enable-api-mode
 ```
 
 O recetor mantém-se em primeiro plano. Com o processo ativo, escreva `/triagem ajuda` no canal; só uma resposta a esse comando confirma a receção funcional. Depois execute `/triagem`. Um PID ou a mensagem de arranque não prova que Socket Mode esteja ligado.
