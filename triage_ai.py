@@ -78,11 +78,12 @@ def analyze(collection, examples, key=None, model=None):
                    'tickets': [context_ticket(t) for t in batch],
                    'historical_examples': [context_ticket(t) for t in examples]}
         payload = {'model': model or os.getenv('TRIAGE_MODEL', 'gpt-4.1'),
-                   'instructions': instructions,
-                   'input': json.dumps(context, ensure_ascii=False), 'store': False,
-                   'text': {'format': {'type': 'json_schema', 'name': 'ticket_triage',
-                                       'strict': True, 'schema': schema}}}
-        request = urllib.request.Request('https://api.openai.com/v1/responses',
+                   'messages': [{'role': 'system', 'content': instructions},
+                                {'role': 'user', 'content': json.dumps(context, ensure_ascii=False)}],
+                   'store': False,
+                   'response_format': {'type': 'json_schema', 'json_schema': {
+                       'name': 'ticket_triage', 'strict': True, 'schema': schema}}}
+        request = urllib.request.Request('https://api.openai.com/v1/chat/completions',
             data=json.dumps(payload).encode(), method='POST',
             headers={'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key})
         try:
@@ -95,18 +96,21 @@ def analyze(collection, examples, key=None, model=None):
                 code = None
             if code == 'invalid_api_key':
                 raise AccessError('A API OpenAI recusou a chave (invalid_api_key). Atualize TRIAGE_MODEL_API_KEY nas configurações seguras; nenhuma recomendação foi publicada por esta análise.') from None
-            if code == 'insufficient_quota':
+            if code in ('insufficient_quota', 'credit_balance_exhausted'):
                 raise AccessError('A API OpenAI não tem quota disponível. Verifique faturação e limites do projeto; nenhuma recomendação foi publicada por esta análise.') from None
             raise AccessError(f'API de análise HTTP {error.code}; resultados não publicados.') from None
         except (urllib.error.URLError, ValueError):
             raise AccessError('Falha na API de análise; resultados não publicados.') from None
-        if data.get('status') != 'completed':
+        choices = data.get('choices', [])
+        if len(choices) != 1 or choices[0].get('finish_reason') != 'stop':
             raise AccessError('A análise não terminou; resultados não publicados.')
-        text = ''.join(c.get('text', '') for output in data.get('output', [])
-                       for c in output.get('content', []) if c.get('type') == 'output_text')
+        message = choices[0].get('message', {})
+        if message.get('refusal'):
+            raise AccessError('A IA recusou a análise; resultados não publicados.')
+        text = message.get('content')
         try:
             items = json.loads(text)['tickets']
-        except (ValueError, KeyError):
+        except (ValueError, KeyError, TypeError):
             raise AccessError('Resposta de análise inválida.') from None
         results.extend(validate(items, batch, groups, subqueues))
     return results

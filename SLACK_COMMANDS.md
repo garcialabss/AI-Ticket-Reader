@@ -46,6 +46,8 @@ O recetor mantém-se em primeiro plano. Com o processo ativo, escreva `/triagem 
 
 Se a API devolver `invalid_api_key`, atualize TRIAGE_MODEL_API_KEY com uma chave API OpenAI válida do projeto pretendido, guarde a configuração e reinicie o recetor. Não envie a chave em mensagens. Uma consulta GET de metadados de modelo pode ser acessível sem autenticação e não prova que a credencial permite gerar análises. Erros de quota exigem verificar faturação e limites; não são o mesmo que uma chave recusada.
 
+O cliente usa `/v1/chat/completions` com Structured Outputs e `store: false`. Neste ambiente, um teste a esse endpoint devolveu `credit_balance_exhausted` (HTTP 429), ao passo que `/v1/responses` devolvia `invalid_api_key`; por isso, a geração foi adaptada para Chat Completions. O teste real ainda não produziu recomendações: requer saldo/quota disponível. Para `credit_balance_exhausted` ou `insufficient_quota`, verifique saldo, método de pagamento e limites no projeto/organização que emitiu a chave, em https://platform.openai.com/settings/organization/billing/overview. Se esses valores estiverem disponíveis, verifique também a quota do gateway/proxy utilizado pelo ambiente; uma resposta de quota não determina por si só onde o limite foi aplicado. Não mude de chave apenas por falta de saldo.
+
 Para disponibilidade permanente, execute num servidor ou serviço da organização que permaneça ativo, com armazenamento persistente de `state/` e credenciais seguras. A instalação neste ambiente Codex Cloud não garante execução 24/7; suspensão ou encerramento da tarefa interrompe o recetor. Não há infraestrutura de alojamento externo provisionada neste repositório.
 
 ## Estado, falhas e duplicados
