@@ -134,7 +134,11 @@ def main():
         except Exception as error:
             # Never log raw API payloads, model inputs, commands, credentials or response URLs.
             try:
-                publish(slack, channel, 'A triagem não foi concluída. Verifique a configuração e os recibos locais antes de repetir. '
+                detail = str(error) if isinstance(error, AccessError) else 'Verifique a configuração e os recibos locais antes de repetir.'
+                jobs = read_json(path, {})
+                jobs[job_id] = {'status': 'failed', 'error': detail}
+                write_private(path, jobs)
+                publish(slack, channel, 'A triagem não foi concluída. ' + detail + '\n'
                         'Nenhum ticket Freshservice foi alterado.\nPedido: ' + hashlib.sha256(job_id.encode()).hexdigest()[:12],
                         STATE / 'slack-receipts.json')
             except Exception:

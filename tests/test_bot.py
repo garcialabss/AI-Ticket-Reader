@@ -1,6 +1,7 @@
 import tempfile
 import json
 import io
+import urllib.error
 from pathlib import Path
 import unittest
 from unittest.mock import Mock, patch
@@ -11,6 +12,20 @@ from triage_ai import validate, analyze
 
 
 class BotTests(unittest.TestCase):
+    def test_invalid_api_key_reported_without_secret(self):
+        collection = {'groups': [{'name': 'DevOPS'}], 'subqueue_field': {'choices': [{'value': 'SIGA'}]},
+                      'tickets': [{'id': 1, 'url': 'https://dnspt.freshservice.com/a/tickets/1',
+                                   'ticket': {'id': 1, 'subject': 'Fictício'}, 'conversations': []}]}
+        body = io.BytesIO(json.dumps({'error': {'code': 'invalid_api_key', 'message': 'secret-value-not-for-logs'}}).encode())
+        error = urllib.error.HTTPError('https://api.openai.com/v1/responses', 401, 'Unauthorized', {}, body)
+        opener = Mock()
+        opener.open.side_effect = error
+        with patch('triage_ai.urllib.request.build_opener', return_value=opener):
+            with self.assertRaises(AccessError) as captured:
+                analyze(collection, [], key='fictional')
+        self.assertIn('invalid_api_key', str(captured.exception))
+        self.assertNotIn('secret-value-not-for-logs', str(captured.exception))
+
     def test_socket_only_rejects_http_ingress(self):
         app = Mock()
         middleware = []

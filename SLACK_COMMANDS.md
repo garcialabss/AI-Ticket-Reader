@@ -44,6 +44,8 @@ python -m venv /workspace/.ticket-reader-venv
 
 O recetor mantém-se em primeiro plano. Com o processo ativo, escreva `/triagem ajuda` no canal; só uma resposta a esse comando confirma a receção funcional. Depois execute `/triagem`. Um PID ou a mensagem de arranque não prova que Socket Mode esteja ligado.
 
+Se a API devolver `invalid_api_key`, atualize TRIAGE_MODEL_API_KEY com uma chave API OpenAI válida do projeto pretendido, guarde a configuração e reinicie o recetor. Não envie a chave em mensagens. Uma consulta GET de metadados de modelo pode ser acessível sem autenticação e não prova que a credencial permite gerar análises. Erros de quota exigem verificar faturação e limites; não são o mesmo que uma chave recusada.
+
 Para disponibilidade permanente, execute num servidor ou serviço da organização que permaneça ativo, com armazenamento persistente de `state/` e credenciais seguras. A instalação neste ambiente Codex Cloud não garante execução 24/7; suspensão ou encerramento da tarefa interrompe o recetor. Não há infraestrutura de alojamento externo provisionada neste repositório.
 
 ## Estado, falhas e duplicados

@@ -89,6 +89,14 @@ def analyze(collection, examples, key=None, model=None):
             with urllib.request.build_opener(NoRedirect).open(request, timeout=180) as response:
                 data = json.load(response)
         except urllib.error.HTTPError as error:
+            try:
+                code = json.load(error).get('error', {}).get('code')
+            except (ValueError, AttributeError):
+                code = None
+            if code == 'invalid_api_key':
+                raise AccessError('A API OpenAI recusou a chave (invalid_api_key). Atualize TRIAGE_MODEL_API_KEY nas configurações seguras; nenhuma recomendação foi publicada por esta análise.') from None
+            if code == 'insufficient_quota':
+                raise AccessError('A API OpenAI não tem quota disponível. Verifique faturação e limites do projeto; nenhuma recomendação foi publicada por esta análise.') from None
             raise AccessError(f'API de análise HTTP {error.code}; resultados não publicados.') from None
         except (urllib.error.URLError, ValueError):
             raise AccessError('Falha na API de análise; resultados não publicados.') from None
