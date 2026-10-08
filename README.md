@@ -2,6 +2,8 @@
 
 Leitor de tickets Freshservice para apoiar a triagem pelo Codex Cloud. O programa recolhe dados; o Codex analisa-os e apresenta recomendações na conversa. Não é um serviço autónomo de IA e não executa tarefas por agenda.
 
+Também existe um modo de comandos Slack com análise pela API OpenAI: [SLACK_COMMANDS.md](SLACK_COMMANDS.md). Nesse modo, um utilizador autorizado executa `/triagem` e recebe as recomendações no canal. Requer credenciais adicionais e um processo ativo; não é uma funcionalidade nativa da subscrição Codex.
+
 ## Preparação
 
 - Python 3.10 ou posterior, sem dependências externas.

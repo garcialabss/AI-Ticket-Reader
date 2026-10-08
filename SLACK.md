@@ -2,6 +2,8 @@
 
 O Slack recebe recomendações já revistas pelo Codex. O Freshservice mantém-se apenas em leitura. Esta integração não agenda análises nem publica automaticamente.
 
+Este documento descreve publicação manual. Para iniciar a análise diretamente pelo Slack, consulte [SLACK_COMMANDS.md](SLACK_COMMANDS.md). Nesse modo, as recomendações são geradas pela API OpenAI e publicadas por autorização do comando, sem revisão humana prévia.
+
 ## Configuração por um administrador do Slack
 
 1. Crie uma Slack App no workspace pretendido em https://api.slack.com/apps.
