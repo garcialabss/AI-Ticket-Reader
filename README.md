@@ -54,3 +54,7 @@ Os testes usam dados fictícios. A validação com o Freshservice real requer a 
 ## O que fica no GitHub
 
 Código, testes, documentação e instruções de triagem. `data/`, `reports/`, `state/`, `.env` e logs são ignorados. Nunca force a inclusão desses diretórios nem publique conteúdo de tickets, anexos ou chaves. O programa de recolha não cria relatórios automaticamente: as recomendações são produzidas pelo Codex na conversa.
+
+## Slack
+
+Consulte [SLACK.md](SLACK.md) para configurar o bot e publicar recomendações revistas. `slack_notify.py` pré-visualiza por defeito; a publicação exige `--send` e autorização do utilizador para o relatório e canal. O leitor Freshservice continua sem escrita.

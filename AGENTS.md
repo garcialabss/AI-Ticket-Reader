@@ -6,4 +6,6 @@ Leia README.md e TRIAGE.md antes de trabalhar com tickets. Preserve todas as res
 
 O leitor usa Python e a biblioteca padrão. Para validar alterações: `python -m unittest discover -s tests -v`. Testes devem usar dados fictícios e não podem precisar de credenciais.
 
+Para Slack, leia SLACK.md. Só publique com autorização explícita para o relatório e canal; ligar ou testar autenticação não autoriza mensagens. Não solicite tokens na conversa. Nunca repita submissões incertas nem remova recibos para contornar a proteção. A publicação pode notificar membros do canal. O workflow Freshservice permanece em leitura.
+
 Para iniciar o workflow: `python reader.py` na raiz deste checkout. O sucesso deve confirmar acesso, workspace e recolha completa, não apenas a existência do processo. Em seguida, analise a recolha segundo TRIAGE.md. O leitor não é um serviço persistente nem agenda execuções.
